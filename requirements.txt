@@ -3,3 +3,4 @@ fastapi[all]==0.100.0
 sqlalchemy
 pytest
 httpx
+coverage
