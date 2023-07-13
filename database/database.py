@@ -18,7 +18,7 @@ class DatabaseIntegrityError(Exception):
     pass
 
 
-class RecordNotFound(Exception):
+class DatabaseItemNotFound(Exception):
     pass
 
 
@@ -57,8 +57,8 @@ async def create_db_item(db: Session, model: Base):
 
 
 async def update_db_item(db: Session, model: Base, input_model: BaseModel, id: int):
-    db_item = db.get(model, id)
-    if not db_item:
+    obj = db.get(model, id)
+    if not obj:
         return
 
     data = input_model.model_dump(exclude_unset=True)
@@ -73,7 +73,8 @@ async def update_db_item(db: Session, model: Base, input_model: BaseModel, id: i
 
 
 async def delete_db_item(db: Session, model: Base, id: int):
-    item = db.query(model).filter(model.id == id).first()
+    item = await get_db_item(db, model, id)
+    if not item:
+        raise DatabaseItemNotFound()
     db.delete(item)
     db.commit()
-    return {"delete status": "success"}
