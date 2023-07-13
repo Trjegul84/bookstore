@@ -90,11 +90,11 @@ def create_book(client, name, author):
     return response.json()
 
 
-def create_book_error_when_author_does_not_exists(client, name, author):
-    author_id = ANY
-    data = {"name": name, "author_id": author_id}
+def test_create_book_error_when_author_does_not_exists(client):
+    data = {"name": "Book title", "author_id": 123}
     response = client.post("/books", json=data)
-    return response.json()
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Author does not exist"}
 
 
 def test_list_all_books(client):
