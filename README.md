@@ -79,9 +79,8 @@ DATABASE_URL='sqlite:///./database_name.db' uvicorn app.main:app --reload
 
 The application can be run within a docker container:
 
-### Prerequisite
+**Prerequisite:** Docker version 20.10+
 
-Docker version 20.10+
 
 1. Build the image
 
@@ -114,10 +113,14 @@ To check the coverage with a nice html view:
 
 3. Open the generated html report (`/bookstore/htmlcov/index.html`) in the browser
 
-## Documentation
-
 
 ## References
+
+- [FastAPI](https://fastapi.tiangolo.com/)
+- [SQLAlchemy](https://docs.sqlalchemy.org/en/20/faq/sessions.html)
+- [SQL and FastAPI](https://sqlmodel.tiangolo.com/tutorial/fastapi/update/)
+- [Pydantic](https://docs.pydantic.dev/latest/)
+- [Pytest](https://docs.pytest.org/en/stable/index.html)
 
 ## Author
 
