@@ -9,11 +9,11 @@ from database.database import Base, engine
 
 @pytest.fixture
 def client(tmp_path):
-    override_db()
+    clear_db()
     return TestClient(app)
 
 
-def override_db():
+def clear_db():
     with engine.connect() as connection, connection.begin():
         for table in reversed(Base.metadata.sorted_tables):
             connection.execute(table.delete())
