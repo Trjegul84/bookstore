@@ -30,6 +30,29 @@ def get_db():
         db.close()
 
 
+class DbSession:
+    @staticmethod
+    def create():
+        db = session()
+        try:
+            yield DbSession(db)
+        finally:
+            db.close()
+
+    def __init__(self, db) -> None:
+        self.db = db
+
+    async def create_db_item(self, model: Base):
+        self.db.add(model)
+        try:
+            self.db.commit()
+        except IntegrityError as exc:
+            raise DatabaseIntegrityError from exc
+
+        self.db.refresh(model)
+        return model
+
+
 async def get_db_items(db: Session, model: Base):
     return db.query(model).all()
 
@@ -64,12 +87,12 @@ async def update_db_item(db: Session, model: Base, input_model: BaseModel, id: i
     data = input_model.model_dump(exclude_unset=True)
 
     for key, value in data.items():
-        setattr(db_item, key, value)
+        setattr(obj, key, value)
 
-    db.add(db_item)
+    db.add(obj)
     db.commit()
-    db.refresh(db_item)
-    return db_item
+    db.refresh(obj)
+    return obj
 
 
 async def delete_db_item(db: Session, model: Base, id: int):

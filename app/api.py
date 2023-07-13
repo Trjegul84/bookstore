@@ -1,12 +1,15 @@
+from http import HTTPStatus
 from typing import List
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Response
 from starlette.responses import RedirectResponse
 
 from app.main import app
 from app.schemas import AuthorIn, AuthorOut, BookIn, BookOut
 from database.database import (
     DatabaseIntegrityError,
+    DatabaseItemNotFound,
+    DbSession,
     Session,
     create_db_item,
     delete_db_item,
@@ -39,9 +42,9 @@ async def get_author_by_id(id: int, db: Session = Depends(get_db)):
 
 
 @app.post("/authors", response_model=AuthorOut)
-async def create_author(author: AuthorIn, db: Session = Depends(get_db)):
+async def create_author(author: AuthorIn, db: DbSession = Depends(DbSession.create)):
     author_model = Author(**author.model_dump())
-    return await create_db_item(db, author_model)
+    return await db.create_db_item(author_model)
 
 
 @app.patch("/authors/{id}", response_model=AuthorOut)
@@ -54,21 +57,18 @@ async def update_author(id: int, author: AuthorIn, db: Session = Depends(get_db)
     return db_author
 
 
-@app.delete("/authors/{id}")
+@app.delete("/authors/{id}", status_code=204, response_model=None)
 async def delete_author(id: int, db: Session = Depends(get_db)):
-    db_author = await get_db_item(db, Author, id)
-
-    if db_author is None:
+    try:
+        await delete_db_item(db, Author, id)
+    except DatabaseItemNotFound:
         raise HTTPException(status_code=400, detail="Author does not exist")
-
-    return await delete_db_item(db, Author, id)
 
 
 @app.get("/books", response_model=list[BookOut])
 async def list_books(author_id: str = None, db: Session = Depends(get_db)):
     if author_id is not None:
-        filter = {"author_id": author_id}
-        return await filter_db_items(db, Book, **filter)
+        return await filter_db_items(db, Book, author_id=author_id)
     return await get_db_items(db, Book)
 
 
@@ -104,10 +104,9 @@ async def update_book(id: int, book: BookIn, db: Session = Depends(get_db)):
     return db_book
 
 
-@app.delete("/books/{id}")
+@app.delete("/books/{id}", status_code=204, response_model=None)
 async def delete_book(id: int, db: Session = Depends(get_db)):
-    db_book = await get_db_item(db, Book, id)
-    if db_book is None:
+    try:
+        await delete_db_item(db, Book, id)
+    except DatabaseItemNotFound:
         raise HTTPException(status_code=400, detail="Book does not exist")
-
-    return await delete_db_item(db, Book, id)
