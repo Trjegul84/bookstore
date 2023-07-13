@@ -2,7 +2,6 @@ import sys
 
 from fastapi import FastAPI
 
-
 version = f"{sys.version_info.major}.{sys.version_info.minor}"
 
 description = """

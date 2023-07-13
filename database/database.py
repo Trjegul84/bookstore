@@ -2,13 +2,12 @@ import os
 
 from pydantic import BaseModel
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session, declarative_base
 from sqlalchemy.exc import IntegrityError
-
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./prod.db")
 
-engine = create_engine(DATABASE_URL, connect_args = {"check_same_thread": False})
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
 session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -24,11 +23,11 @@ class RecordNotFound(Exception):
 
 
 def get_db():
-   db = session()
-   try:
-      yield db
-   finally:
-    db.close()
+    db = session()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 async def get_db_items(db: Session, model: Base):

@@ -1,13 +1,22 @@
-
-
 from typing import List
+
 from fastapi import Depends, HTTPException
 from starlette.responses import RedirectResponse
 
 from app.main import app
-from database.database import DatabaseIntegrityError, Session, delete_db_item, filter_db_items, get_db, get_db_items, get_db_item, create_db_item, update_db_item
-from database.models import Book, Author
-from .schemas import AuthorIn, AuthorOut, BookIn, BookOut
+from app.schemas import AuthorIn, AuthorOut, BookIn, BookOut
+from database.database import (
+    DatabaseIntegrityError,
+    Session,
+    create_db_item,
+    delete_db_item,
+    filter_db_items,
+    get_db,
+    get_db_item,
+    get_db_items,
+    update_db_item,
+)
+from database.models import Author, Book
 
 
 @app.get("/")
@@ -15,12 +24,12 @@ async def main():
     return RedirectResponse(url="/docs/")
 
 
-@app.get('/authors', response_model=List[AuthorOut])
+@app.get("/authors", response_model=list[AuthorOut])
 async def list_authors(db: Session = Depends(get_db)):
     return await get_db_items(db, Author)
 
 
-@app.get('/authors/{id}', response_model=AuthorOut)
+@app.get("/authors/{id}", response_model=AuthorOut)
 async def get_author_by_id(id: int, db: Session = Depends(get_db)):
     author = await get_db_item(db, Author, id)
 
@@ -29,7 +38,7 @@ async def get_author_by_id(id: int, db: Session = Depends(get_db)):
     return author
 
 
-@app.post('/authors', response_model=AuthorOut)
+@app.post("/authors", response_model=AuthorOut)
 async def create_author(author: AuthorIn, db: Session = Depends(get_db)):
     author_model = Author(**author.model_dump())
     return await create_db_item(db, author_model)
@@ -45,7 +54,7 @@ async def update_author(id: int, author: AuthorIn, db: Session = Depends(get_db)
     return db_author
 
 
-@app.delete('/authors/{id}')
+@app.delete("/authors/{id}")
 async def delete_author(id: int, db: Session = Depends(get_db)):
     db_author = await get_db_item(db, Author, id)
 
@@ -55,7 +64,7 @@ async def delete_author(id: int, db: Session = Depends(get_db)):
     return await delete_db_item(db, Author, id)
 
 
-@app.get('/books', response_model=List[BookOut])
+@app.get("/books", response_model=list[BookOut])
 async def list_books(author_id: str = None, db: Session = Depends(get_db)):
     if author_id is not None:
         filter = {"author_id": author_id}
@@ -63,7 +72,7 @@ async def list_books(author_id: str = None, db: Session = Depends(get_db)):
     return await get_db_items(db, Book)
 
 
-@app.get('/books/{id}', response_model=BookOut)
+@app.get("/books/{id}", response_model=BookOut)
 async def get_book_by_id(id: str, db: Session = Depends(get_db)):
     book = await get_db_item(db, Book, id)
     if book is None:
@@ -71,7 +80,7 @@ async def get_book_by_id(id: str, db: Session = Depends(get_db)):
     return book
 
 
-@app.post('/books', response_model=BookOut)
+@app.post("/books", response_model=BookOut)
 async def create_book(book: BookIn, db: Session = Depends(get_db)):
     author = await get_db_item(db, Author, book.author_id)
     if author is None:
@@ -95,7 +104,7 @@ async def update_book(id: int, book: BookIn, db: Session = Depends(get_db)):
     return db_book
 
 
-@app.delete('/books/{id}')
+@app.delete("/books/{id}")
 async def delete_book(id: int, db: Session = Depends(get_db)):
     db_book = await get_db_item(db, Book, id)
     if db_book is None:
